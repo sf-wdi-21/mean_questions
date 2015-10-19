@@ -2,7 +2,7 @@ var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 var AnswerSchema = new Schema({
-  content: {
+  text: {
     type: String,
     required: true
   }

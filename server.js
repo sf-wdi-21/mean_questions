@@ -1,140 +1,84 @@
 // require express and other modules
 var express = require('express'),
-    app = express(),
+    logger = require('morgan'),
+    cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
+    expressSession = require('express-session'),
     mongoose = require('mongoose'),
-    Question = require('./models/question'),
-    Answer = require('./models/answer');
+    hash = require('bcrypt-nodejs'),
+    path = require('path'),
+    ejs = require('ejs'),
+    passport = require('passport'),
+    localStrategy = require('passport-local' ).Strategy;
 
-// connect to mongodb
-mongoose.connect('mongodb://localhost/ask_anything');
+// create instance of express
+var app = express();
 
-// configure body-parser
-app.use(bodyParser.urlencoded({extended: true}));
+// set templating engine
+app.set('view engine', 'ejs');
 
-//// API ROUTES
+// user schema/model
+var User = require('./models').User;
 
-// send back all questions
-app.get('/api/questions', function (req, res) {
-  Question.find({}, function (err, questions) {
-    res.json(questions);
-  });
+// require routes
+var api = require('./api');
+
+/**************
+ * MiddleWare *
+ **************/
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false })); // parse forms
+app.use(cookieParser());
+app.use(require('express-session')({
+    secret: 'so many questions',
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.static(path.join(__dirname, 'public'))); // angular application
+
+// configure passport
+passport.use(new localStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+
+/**********
+ * Routes *
+ **********/
+
+app.use(api);
+
+app.get(["/", "*"], function(req, res){
+  res.send(
+     res.render('application.html.ejs', {user: req.user})
+  )
 });
 
-// create new question
-app.post('/api/questions', function (req, res) {
-  // create new question with data from the body of the request (`req.body`)
-  // body should contain the question text itself
-  var newQuestion = new Question(req.body);
+/**********
+ * Errors *
+ **********/
 
-  // save new question
-  newQuestion.save(function (err, savedQuestion) {
-    if (err) {
-      res.status(422).send(err.errors.text.message);
-    } else {
-      res.json(savedQuestion);
-    }
-  });
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
 });
 
-// get one question
-app.get('/api/questions/:id', function (req, res) {
-  // set the value of the id
-  var targetId = req.params.id;
-
-  // find question in db by id
-  Question.findOne({_id: targetId}, function (err, foundQuestion) {
-    res.json(foundQuestion);
-  });
+app.use(function(err, req, res) {
+  res.status(err.status || 500);
+  res.end(JSON.stringify({
+    message: err.message,
+    error: {}
+  }));
 });
 
-// update question by replacing old question in db
-app.put('/api/questions/:id', function (req, res) {
-  // set the value of the id
-  var targetId = req.params.id;
+/**********
+ * Server *
+ **********/
 
-  // find question in db by id
-  Question.findOne({_id: targetId}, function (err, foundQuestion) {
-    // update the question's text
-    foundQuestion.text = req.body.text;
-
-    // save updated question in db
-    foundQuestion.save(function (err, savedQuestion) {
-      if (err) {
-        res.status(422).send(err.errors.text.message);
-      } else {
-        res.json(savedQuestion);
-      }
-    });
-  });
-});
-
-// delete question
-app.delete('/api/questions/:id', function (req, res) {
-  // set the value of the id
-  var targetId = req.params.id;
-
-  // find question in db by id and remove
-  Question.findOneAndRemove({_id: targetId}, function (err, deletedQuestion) {
-    res.json(deletedQuestion);
-  });
-});
-
-// create answer embedded in question
-app.post('/api/questions/:questionId/answers', function (req, res) {
-  // set the value of the question id
-  var questionId = req.params.questionId;
-
-  // store new answer in memory with data from request body
-  var newAnswer = new Answer(req.body);
-
-  // find question in db by id and add new answer
-  Question.findOne({_id: questionId}, function (err, foundQuestion) {
-    foundQuestion.answers.push(newAnswer);
-    foundQuestion.save(function (err, savedQuestion) {
-      res.json(newAnswer);
-    });
-  });
-});
-
-// update answer embedded in question
-app.put('/api/questions/:questionId/answers/:id', function (req, res) {
-  // set the value of the question and answer ids
-  var questionId = req.params.questionId;
-  var answerId = req.params.id;
-
-  // find question in db by id
-  Question.findOne({_id: questionId}, function (err, foundQuestion) {
-    // find answer embedded in question
-    var foundAnswer = foundQuestion.answers.id(answerId);
-    // update answer content with data from request body
-    foundAnswer.content = req.body.content;
-    foundQuestion.save(function (err, savedQuestion) {
-      res.json(foundAnswer);
-    });
-  });
-});
-
-// delete answer embedded in question
-app.delete('/api/questions/:questionId/answers/:id', function (req, res) {
-  // set the value of the question and answer ids
-  var questionId = req.params.questionId;
-  var answerId = req.params.id;
-
-  // find question in db by id
-  Question.findOne({_id: questionId}, function (err, foundQuestion) {
-    // find answer embedded in question
-    var foundAnswer = foundQuestion.answers.id(answerId);
-    // remove answer
-    foundAnswer.remove();
-    foundQuestion.save(function (err, savedQuestion) {
-      res.json(foundAnswer);
-    });
-  });
-});
-
-
-// listen on port 3000
 app.listen(3000, function() {
   console.log('server started on localhost:3000');
 });

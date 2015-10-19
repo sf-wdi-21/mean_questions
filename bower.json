@@ -1,0 +1,21 @@
+{
+  "name": "QnA",
+  "version": "0.0.0",
+  "directory": "public/",
+  "authors": [
+    "nathanallen"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "latest",
+    "angular-resource": "~1.4.7",
+    "angular-route": "latest"
+  }
+}

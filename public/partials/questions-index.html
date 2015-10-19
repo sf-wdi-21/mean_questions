@@ -1,0 +1,16 @@
+<h3 class='pull-left'>Questions</h3>
+<form ng-submit="createQuestion()">
+  <div class='form-group'>
+    <textarea class='form-control' ng-model="question.text"></textarea>
+  </div>
+  <button type="submit" class='btn btn-default'>Save</button>
+</form>
+<hr>
+<ul class='list-group'>
+  <li ng-repeat="question in questions" class='list-group-item'>
+    {{question.text}}
+    <a href="#" class='pull-right' ng-click="deleteQuestion(question)">
+      <i class='icon ion-close-circled'></i>
+    </a>
+  </li>
+</ul>
