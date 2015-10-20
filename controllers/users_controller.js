@@ -4,7 +4,7 @@ var express = require('express'),
 
 // signup, users#create
 module.exports.register = function (req, res) {
-  User.register(new User({ username: req.body.username }), req.body.password, function(err, account) {
+  User.register(new User({ username: req.body.username }), req.body.password, function(err, user) {
     if (err) {
       return res.status(500).json({err: err});
     }

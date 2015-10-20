@@ -7,9 +7,7 @@ var express = require('express'),
     mongoose = require('mongoose'),
     hash = require('bcrypt-nodejs'),
     path = require('path'),
-    ejs = require('ejs'),
-    passport = require('passport'),
-    localStrategy = require('passport-local' ).Strategy;
+    ejs = require('ejs');
 
 // create instance of express
 var app = express();
@@ -21,7 +19,8 @@ app.set('view engine', 'ejs');
 var User = require('./models').User;
 
 // require routes
-var api = require('./api');
+var api = require('./api'),
+    auth = require('./auth')
 
 /**************
  * MiddleWare *
@@ -30,25 +29,18 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false })); // parse forms
 app.use(cookieParser());
-app.use(require('express-session')({
+app.use(expressSession({
     secret: 'so many questions',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
 }));
-app.use(passport.initialize());
-app.use(passport.session());
 app.use(express.static(path.join(__dirname, 'public'))); // angular application
-
-// configure passport
-passport.use(new localStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
-
 
 /**********
  * Routes *
  **********/
 
+app.use(auth);
 app.use(api);
 
 app.get(["/", "*"], function(req, res){
@@ -56,6 +48,7 @@ app.get(["/", "*"], function(req, res){
      res.render('application.html.ejs', {user: req.user})
   )
 });
+
 
 /**********
  * Errors *
