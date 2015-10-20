@@ -1,44 +1,93 @@
 ## MEAN Questions (and Answers)
+## OAuth with Passport.js
 
-Today we'll be getting our first taste of the MEAN stack: Mongoose, Express, Angular, Node. We've done server side Mongo/Express/Node and client side Angular. It's time to put the piece together.
+Have you ever seen those “Sign in with…” buttons?
 
-## Server Routes
-Our routes live in `./api.js`.
+- Sign in with Twitter
+- Sign in with Google
+- Sign in with Github
+- Sign in with Facebook
 
-Our application has CRUD routes for Questions:
+How does that work!? Are you just handing random web applications your username and password. Is that secure!? o.O
 
-| Method | Action | Verb |
-| :---- | :---- | :---- |
-| GET | `/api/questions` | index |
-| POST | `/api/questions` | create |
-| GET | `/api/questions/:id` | show |
-| PUT | `/api/questions/:id` | update |
-| DELETE | `/api/questions/:id` | destroy |
+What happens when you click one of those buttons? What kind of conversation is happening between the website and Google/Twitter/Facebook?
 
-And some nested routes for Answers:
+## Introducing OAuth
 
-| Method | Action | Verb |
-| :---- | :---- | :---- |
-| POST | `/api/questions/:questionId/answers` | create |
-| PUT | `/api/questions/:questionId/answers/:id` | update |
-| DELETE | `/api/questions/:questionId/answers/:id` | destroy |
+Aren’t you tired of usernames and passwords!?
 
-We also have routes for Authentication (but resources aren't protected yet):
+**From the user’s perspective**:
 
-| Method | Action | Verb |
-| :---- | :---- | :---- |
-| POST | `/api/users/login` | sessions#create |
-| PUT | `/api/users/logout` | sessions#destory |
-| UPDATE | `/api/users/register` | user#create |
+- OAuth allows users to login to a number of websites without creating a new username and password. **Single Sign-On** is a big win!
+- OAuth allows users to share/import some of their data (email, contacts, photos, tweets) with third party applications.
+- Caveat: This often feels like a gross invasion of privacy.
 
-Take a moment to explore the following files:
+**From the developer’s perspective**:
 
-- `server.js`
-- `api.js`
-- `/controllers/questions_controller.js`
+- OAuth makes the signup/registration process a little easier.
+- If the User forgets their username/password, it’s not our problem!
+- OAuth provides us with a source of data/feeds (user info, photos, tweets).
+- Major Caveat: You’ve struck a deal with the devil! (Facebook/Google/Twitter).
+
+#### How Does it Work?
+
+Instead of reusing a user’s Username and Password, OAuth uses application-specific keys. There are always two keys: a public key, and a private key.
+
+Both your application (consumer) and your application-user (client) have a set of public/private keys associated with them. These keys are provided/distributed by the OAuth provider, and they are never reused (google/facebook/twitter).
+
+Remember:
+
+``` psuedocode
+CONSUMER === Your Application
+CLIENT === Your User
+```
+
+Here’s what the request response cycle looks like:
+
+![oauth diagram](http://tutorials.jenkov.com/images/oauth2/overview-1.png)
+
+source: http://tutorials.jenkov.com/oauth2/overview.html
+
+## Getting Started
+### Registering your Application with Twitter Oauth
+- Log into twitter
+- Go to your Twitter Profile and [add your phone number](https://twitter.com/settings/add_phone) and verify it (required).
+- Go to the [developer section](https://dev.twitter.com/apps)
+    - Create a new application
+        - Name: mean_questions_oauth
+        - Description: learnings the twitters oath
+        - Website: http://www.localhost-form-now.com
+        - Callback Url: `http://127.0.0.1:3000/auth/twitter/callback` (aka `localhost:3000`!)
 
 
-## Setup
+Once you’ve registered your application, you should see the following information:
+
+- Your application’s “Consumer Key (API Key)”
+- Your application’s Callback Url
+- Twitter’s oath endpoints:
+
+| description | endpoint |
+| :———— | :———— |
+| App-only authentication | https://api.twitter.com/oauth2/token |
+| Request token URL |   https://api.twitter.com/oauth/request_token |
+| Authorize URL |   https://api.twitter.com/oauth/authorize |
+| Access token URL |    https://api.twitter.com/oauth/access_token |
+
+Make a note of your Public Consumer Key and your Private Consumer Key (we’re going to need these shortly)
+
+
+## Oauth Integration with Passport.js
+We will be using a javascript module called passport.js to help with user authentication. Passport enables us to have multiple different authorization “strategies” — local authentication, OAuth through Facebook, OAuth through Twitter, OAuth through Github, Google, etc. If we had to roll our own OAuth for every single one of these services, we’d never get anything else done!
+
+Documentation: [Passport.js](http://passportjs.org/docs)
+
+We’re going to be using the Twitter OAuth Authentication Strategy.
+
+Please make your changes inside of `auth.js`.
+
+For the rest of this tutorial, please follow the instructions for [passport-twitter](https://github.com/jaredhanson/passport-twitter).
+
+## Basic Setup
 
 Clone this repo.
 
@@ -53,46 +102,3 @@ node seed.js # adds a few questions to the databse
 nodemon # run the server
 open http://localhost:3000 # launch the application in the browser
 ```
-
-## Postman Challenge
-To explore todays application we're going to user a browser extension called [Postman](https://www.getpostman.com/).
-
-Please install the postman browser extension for chrome: https://www.getpostman.com/
-
-Instructions for using Postman can be found here: https://www.getpostman.com/docs/requests
-
-**Challenge**: Can you verify that ALL of the endpoints are working, using curl and/or Postman? Can you create and modify questions and answers?
-
-#### Sidenote: Using CURL to explore API endpoints
-
-GET `questions#index`:
-
-``` bash
-curl http://localhost:3000/api/questions
-# or
-curl -X GET http://localhost:3000/api/questions
-```
-
-POST `questions#create`
-
-``` bash
-curl -X POST --data "text=I love curling" http://localhost:3000/api/questions
-```
-
-PUT and DELETE follow the same pattern!
-
-### Angular Challenge
-
-Your challenge is to setup views for Questions and Answers.
-
-- `/` should display a list of questions
-- `/questions/:id` should display a single question + answers
-- `/questions/:id/edit` should allow you to update/delete a question
-
-Stretch Goal: A user can answer questions.
-
-### Authorization Challenge
-
-Take a look at the `requireUser` function in `/controllers/users_controller.js`.
-
-How would you use this "middleware" to protect all the API endpoints from a user who isn't logged in? (You don't need to protect GET requests, but definitely POST/PUT/DELETE!)
