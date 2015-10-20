@@ -13,7 +13,7 @@ Our application has CRUD routes for Questions:
 | POST | `/api/questions` | create |
 | GET | `/api/questions/:id` | show |
 | PUT | `/api/questions/:id` | update |
-| UPDATE | `/api/questions/:id` | destroy |
+| DELETE | `/api/questions/:id` | destroy |
 
 And some nested routes for Answers:
 
@@ -21,7 +21,7 @@ And some nested routes for Answers:
 | :---- | :---- | :---- |
 | POST | `/api/questions/:questionId/answers` | create |
 | PUT | `/api/questions/:questionId/answers/:id` | update |
-| UPDATE | `/api/questions/:questionId/answers/:id` | destroy |
+| DELETE | `/api/questions/:questionId/answers/:id` | destroy |
 
 We also have routes for Authentication (but resources aren't protected yet):
 
@@ -61,7 +61,7 @@ Please install the postman browser extension for chrome: https://www.getpostman.
 
 Instructions for using Postman can be found here: https://www.getpostman.com/docs/requests
 
-**Challenge**: Can you verify that ALL of the endpoints are working, using curl and/or Postman?
+**Challenge**: Can you verify that ALL of the endpoints are working, using curl and/or Postman? Can you create and modify questions and answers?
 
 #### Sidenote: Using CURL to explore API endpoints
 
@@ -79,6 +79,7 @@ POST `questions#create`
 curl -X POST --data "text=I love curling" http://localhost:3000/api/questions
 ```
 
+PUT and DELETE follow the same pattern!
 
 ### Angular Challenge
 
