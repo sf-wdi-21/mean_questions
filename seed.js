@@ -1,8 +1,13 @@
 var db = require("./models");
 
 var new_questions = [
-  {text: "Why is the sky blue?"},
-  {text: "What is a question mark?"}
+  {
+    text: "What method would you use to add an answer to this question?"
+  },
+  {
+    text: "Can u modify tihs to fix teh typoes?",
+    answers: [{text: "try using PUT!"}]
+  }
 ]
 
 // clear the database of all Questions
