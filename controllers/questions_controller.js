@@ -5,9 +5,7 @@ var mongoose = require('mongoose'),
 
 // send back all questions
 module.exports.index = function (req, res) {
-  Question.find({})
-          .populate('questions')
-          .exec(function (err, questions) {
+  Question.find({}, function (err, questions) {
     res.json(questions);
   });
 }
@@ -34,9 +32,7 @@ module.exports.show = function (req, res) {
   var targetId = req.params.id;
 
   // find question in db by id
-  Question.findOne({_id: targetId})
-          .populate('questions')
-          .exec(function (err, foundQuestion) {
+  Question.findOne({_id: targetId}, function (err, foundQuestion) {
     res.json(foundQuestion);
   });
 }
